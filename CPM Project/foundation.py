@@ -1,3 +1,8 @@
+import sys
+
+welcomeMessage = """Welcome to the Critical Path Program! This program will help you solve all
+of your project management needs. To get started, please follow the instructions below.""" + '\n'
+
 class Graph:
 
     def __init__(self, start):
@@ -13,6 +18,41 @@ class Graph:
     def addObjective(self, node):
         self.addActivity(node)
         self.end = self.activities[len(self.activities)-1]
+
+    def setObjective(self):
+        self.end = self.activities[len(self.activities)-1]
+
+    def getNode(self, name):
+        for i in self.activities:
+            if i.name == name:
+                return i
+
+    #DFS
+    def cycleDetection(self):
+        Stack = []
+        explored = []
+        Stack.append(self.activities[0])
+        while Stack:
+            currNode = Stack.pop()
+            if currNode in explored:
+                return True
+            explored.append(currNode)
+            print(currNode.name)
+            if currNode.neighbors:
+                for key in currNode.neighbors:
+                    Stack.append(key)
+        return False
+
+
+    def printGraphSym(self):
+        for i in self.activities:
+            newStr = str(i.name) + '-> '
+            for j in i.neighbors:
+                newStr += j.name + ', '
+            newStr = newStr[:-2]
+            print(newStr)
+
+
 
     def printGraph(self):
         for i in self.activities:
@@ -60,7 +100,7 @@ class Graph:
             self.earlyFinish = None
             self.lateStart = None
             self.lateFinish = None
-            self.float = None
+            self.slack = None
             self.neighbors = {}
             self.numActivities = 0
 
@@ -84,6 +124,8 @@ class Graph:
                 i.earlyFinish = i.earlyStart + i.duration
                 Q.append(i)
 
+
+
     def secondPass(self):
         self.reverseGraph()
         self.printGraph()
@@ -106,48 +148,67 @@ class Graph:
         self.reverseGraph()
 
 
+    def calculateSlack(self):
+        Q = []
+        Q.append(self.start)
+        while Q:
+            currNode = Q.pop(0)
+            currNode.slack = currNode.lateFinish - currNode.earlyFinish
+            for i in currNode.neighbors:
+                Q.append(i)
+
+
+def quit():
+    sys.exit(0)
+
+
+def main():
+    print(welcomeMessage)
+
+    numActivities = int(input("To get started, please indicate how many projects will be needed in the workflow: "))
+    act1Name = input("Great, let's begin! What is the name of your first activity? ")
+    act1Name = act1Name.capitalize()
+    act1Duration = int(input("What is the duration of the first activity?: "))
+    startAct = Graph.Node(act1Name, act1Duration)
+    graph = Graph(startAct)
+    print("Initializing activities . . .")
+    for i in range(numActivities-1):
+        currName = input("Please indicate the name of the next activity? ")
+        currName = currName.capitalize()
+        currDur = int(input("What is the duration of this activity? "))
+        node = Graph.Node(currName, currDur)
+        graph.addActivity(node)
+    graph.setObjective()
+    print("Activities set successfully!")
+    print("The activities have been set! To complete the workflow construction, please follow the steps below.")
+    print("Creating workflow . . .")
+    for i in range(len(graph.activities)-1):
+        currNode = graph.activities[i]
+        neighbors = input("For activity: " + currNode.name + ", what activities immediately proceed it? ")
+        neighbors = neighbors.split(',')
+
+        for j in neighbors:
+            j = j.capitalize()
+            currNode.addEdge(graph.getNode(j))
+
+    if graph.cycleDetection():
+        print('\n')
+        print("Error: Workflow has a cycle! Cannot perform Critical Path Analysis.")
+        sys.exit(0)
+
+    print("Workflow completed successfully! Please verify if the following workflow looks correct: " + '\n')
+    graph.printGraphSym()
+    verify = input("Does this look correct?" + '\n' + "Please enter 'y' for 'yes' or 'n' for 'no'")
+    if verify == 'n':
+        print("Error: Workflow is not consistent. Please try again!")
+        sys.exit(0)
 
 
 
-A = Graph.Node("A", 3)
-H = Graph.Node("H", 3)
-graph = Graph(A)
-graph.addObjective(H)
 
-B = Graph.Node("B", 4)
-C = Graph.Node("C", 2)
-D = Graph.Node("D", 5)
-E = Graph.Node("E", 1)
-F = Graph.Node("F", 2)
-G = Graph.Node("G", 4)
 
-A.addEdge(B)
-A.addEdge(C)
-B.addEdge(D)
-C.addEdge(E)
-C.addEdge(F)
-E.addEdge(G)
-D.addEdge(G)
-G.addEdge(graph.end)
-F.addEdge(graph.end)
+main()
 
-graph.addActivity(B)
-graph.addActivity(C)
-graph.addActivity(D)
-graph.addActivity(E)
-graph.addActivity(F)
-graph.addActivity(G)
-
-graph.firstPass()
-#for i in graph.activities:
-
- #   arr = [i.name, i.earlyStart, i.duration, i.earlyFinish]
-  #  print(arr)
-
-graph.secondPass()
-for i in graph.activities:
-    arr = [i.name, i.earlyStart, i.earlyFinish, i.lateStart, i.duration, i.lateFinish]
-    print(arr)
 
 
 

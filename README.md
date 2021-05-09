@@ -1,6 +1,6 @@
 # Critical Path Method (CPM) Calculator
-# Created by: Nikhill Joshi
-# Last update: 5/9/2021
+### Created by: Nikhill Joshi
+### Last update: 5/9/2021
 
 
 ## Description
